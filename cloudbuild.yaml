@@ -1,0 +1,17 @@
+substitutions:
+  _REGION: us-central1
+  _REPOSITORY: granola
+  _SERVICE: granola
+  _BUCKET: granola-recordings
+steps:
+- name: gcr.io/cloud-builders/docker
+  args: [build, -t, '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$COMMIT_SHA', .]
+- name: gcr.io/cloud-builders/docker
+  args: [push, '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$COMMIT_SHA']
+- name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+  entrypoint: gcloud
+  args: [run, deploy, '${_SERVICE}', '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$COMMIT_SHA', '--region=${_REGION}', --platform=managed, --allow-unauthenticated, '--set-env-vars=GRANOLA_DATA_DIR=/data', '--add-volume=name=recordings,type=cloud-storage,bucket=${_BUCKET}', '--add-volume-mount=volume=recordings,mount-path=/data']
+images:
+- '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$COMMIT_SHA'
+options:
+  logging: CLOUD_LOGGING_ONLY

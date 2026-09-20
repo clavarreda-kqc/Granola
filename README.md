@@ -79,3 +79,13 @@ tts/            Trabajo futuro de síntesis con voces autorizadas
 ## Próximo hito
 
 Definir un piloto pequeño con representantes comunitarios, cerrar el formulario de consentimiento, acordar el esquema de metadatos y registrar 10-20 horas con revisión lingüística. Después se implementará el primer pipeline reproducible de diarización + baseline MMS + evaluación.
+
+## Operación local
+
+```bash
+GRANOLA_DATA_DIR=/tmp/granola python3 app/server.py
+python3 app/server.py export --purpose asr --output /tmp/asr.jsonl
+python3 app/server.py export --purpose tts --output /tmp/tts.jsonl
+```
+
+`POST /api/consent` registra retiros o restricciones por seudónimo con banderas `asr_training` y `tts_voice_training`. `/admin` muestra el estado efectivo del manifiesto. Los exportadores solo incluyen grabaciones con opt-in original y consentimiento vigente. Ver [despliegue continuo](docs/DESPLIEGUE.md).
