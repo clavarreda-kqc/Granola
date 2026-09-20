@@ -41,3 +41,9 @@ data/processed/
 .DS_Store
 .idea/
 .vscode/
+
+# Capturas locales: audio y manifiestos con datos de participantes
+data/local/
+*.webm
+*.ogg
+__pycache__/
