@@ -52,6 +52,45 @@ class MetadataTests(unittest.TestCase):
             self.assertEqual(line["recording_id"], saved["recording_id"])
             self.assertEqual(line["consent_status"], "active")
 
+class ConsentLifecycleTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        server.DATA_DIR = Path(self.temp.name)
+        server.AUDIO_DIR = server.DATA_DIR / "recordings"
+        server.MANIFEST = server.DATA_DIR / "recordings.jsonl"
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def save(self, speaker="hablante_001", asr=True, tts=True):
+        data = valid_metadata(); data["speaker_id"] = speaker
+        data["consent"]["asr_training"] = asr; data["consent"]["tts_voice_training"] = tts
+        return server.save_recording(data, b"synthetic-audio", "audio/webm")
+
+    def test_withdrawal_is_recorded_and_excluded_from_all_exports(self):
+        self.save()
+        event = server.change_consent({"speaker_id": "hablante_001", "asr_training": False, "tts_voice_training": False})
+        self.assertEqual(event["consent_status"], "withdrawn")
+        self.assertEqual([], server.export_records("asr", server.DATA_DIR / "asr.jsonl"))
+        self.assertEqual([], server.export_records("tts", server.DATA_DIR / "tts.jsonl"))
+
+    def test_restriction_is_independent_by_purpose(self):
+        self.save()
+        server.change_consent({"speaker_id": "hablante_001", "tts_voice_training": False})
+        self.assertEqual(1, len(server.export_records("asr", server.DATA_DIR / "asr.jsonl")))
+        self.assertEqual([], server.export_records("tts", server.DATA_DIR / "tts.jsonl"))
+
+    def test_export_never_adds_recording_without_original_opt_in(self):
+        self.save(asr=False, tts=True)
+        self.assertEqual([], server.export_records("asr", server.DATA_DIR / "asr.jsonl"))
+
+    def test_admin_view_shows_effective_flags(self):
+        self.save(speaker="safe-speaker")
+        server.change_consent({"speaker_id": "safe-speaker", "asr_training": False})
+        page = server.admin_html().decode()
+        self.assertIn("safe-speaker", page)
+        self.assertIn("Estado de consentimiento", page)
+
 
 if __name__ == "__main__":
     unittest.main()
