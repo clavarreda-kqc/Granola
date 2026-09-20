@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Audio and derived media
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.aac
+*.ogg
+*.opus
+*.webm
+*.mp4
+
+# Models, checkpoints, and local data
+models/
+checkpoints/
+artifacts/
+data/raw/
+data/interim/
+data/processed/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
